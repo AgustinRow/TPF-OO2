@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "Borderify",
+  "version": "1.0",
+
+  "description": "Trying to open an empty sidebar",
+
+  "sidebar_action": {
+    "default_title": "Testing",
+    "default_panel": "index.html"
+  },
+
+  "permissions": ["storage", "tabs"]
+}
