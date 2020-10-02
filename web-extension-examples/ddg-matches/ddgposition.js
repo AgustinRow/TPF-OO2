@@ -22,7 +22,6 @@ if (urlParams.has("q")) {
     // pass the array of links to the applyResults function
     applyResults(results);
   };
-
   xhr.onerror = function (e) {
     console.log("An error occurred", e);
   };

@@ -12,7 +12,7 @@ function getURLfromSearch() {
     (result) => result.getElementsByTagName("a")[0]
   );
 
-  // googleResults = googleResults.map((result) => result.href);
+  // googleResults = googleRe sults.map((result) => result.href);
 
   return googleResults;
 }
@@ -21,14 +21,6 @@ const searchEngine = window.location.hostname;
 
 //var _urlParams = getStringSearched(window.location.search);
 const googleResults = getURLfromSearch();
-
-browser.runtime.sendMessage({
-  searchQuery: getStringSearched(window.location.search),
-});
-
-browser.runtime.onMessage.addListener((request, sender) => {
-  applyResults(request.args, googleResults);
-});
 
 function applyResults(results, google) {
   console.log(results);
@@ -53,3 +45,11 @@ function applyResults(results, google) {
     );
   }
 }
+
+browser.runtime.sendMessage({
+  searchQuery: getStringSearched(window.location.search),
+});
+
+browser.runtime.onMessage.addListener((request, sender) => {
+  applyResults(request.args, googleResults);
+});

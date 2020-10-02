@@ -1,0 +1,28 @@
+{
+  "manifest_version": 2,
+  "name": "TPF-OO2",
+  "version": "1.0",
+
+  "description": "Places a marker with the position a result in Google appears on duckduckgo for the same search term.",
+
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.google.com/search?*",
+        "*://*.duckduckgo.com/?q=*",
+        "*://*.bing.com/search?q=*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "browser_action": {
+    "default_icon": "icons/beasts-32.png",
+    "default_title": "Search-Matches"
+  },
+
+  "permissions": ["<all_urls>"]
+}
