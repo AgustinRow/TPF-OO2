@@ -17,7 +17,7 @@ class ContentMatchesManager {
     div.style.right = "0";
     return div;
   }
-
+  //TODO: refactorizar
   createContainer(position1, position2) {
     var divContainer = document.createElement("div");
     divContainer = this.settingDivForContainer(divContainer);
@@ -44,7 +44,7 @@ class ContentMatchesManager {
     divContainer.appendChild(divResult);
     return divContainer;
   }
-
+  //TODO: refact
   createImageContainer(position, image) {
     var div = document.createElement("div");
     div.style.padding = "2px 9px 2px 9px";
@@ -65,12 +65,14 @@ class ContentMatchesManager {
     console.log("string de busqueda: " + searchQuery);
     return searchQuery;
   }
+
+  removeHTTPFromBegin(url) {
+    return url.split("//")[1];
+  }
   //TODO: chequear igualdad de url de distintos navegadores www de google vs https de bing y ddg
   renderSearchResult(searchEngine1, searchEngine2) {
     const myDOMelements = this.parseDOM(document);
-    console.log(searchEngine1);
-    console.log(searchEngine2);
-    console.log(myDOMelements);
+
     for (const element of myDOMelements) {
       let url = element.href;
 
@@ -103,9 +105,17 @@ class GoogleSearchManager extends ContentMatchesManager {
     this.image2 =
       "url(https://www.shareicon.net/data/48x48/2016/07/09/118235_bing_512x512.png)";
   }
+  // addMashUpButton() {
+  //   var divContainerForButton = document.getElementById("hdtbSum");
+  //   var button = this.mashUpButton();
+  //   divContainerForButton.insertAdjacentElement("beforeend", button);
+  // }
+
   async launchSearch() {
     const ddgResult = await this.launch("duckduckgo");
     const bingResult = await this.launch("bing");
+    var mashUp = new MashUpResults();
+    mashUp.addMashUpButton("hdtbSum");
     this.renderSearchResult(ddgResult, bingResult); // primero ddg y segundo bing
   }
 
@@ -125,9 +135,18 @@ class DdgSearchManager extends ContentMatchesManager {
     this.image2 =
       "url(https://www.shareicon.net/data/48x48/2016/07/09/118235_bing_512x512.png)";
   }
+  // addMashUpButton() {
+  //   var divContainerForButton = document.getElementById("header");
+  //   divContainerForButton.insertAdjacentElement(
+  //     "beforeend",
+  //     this.mashUpButton()
+  //   );
+  // }
   async launchSearch() {
     const googleResult = await this.launch("google");
     const bingResult = await this.launch("bing");
+    var mashUp = new MashUpResults();
+    mashUp.addMashUpButton("header");
     this.renderSearchResult(googleResult, bingResult); // primero google y segundo bing
   }
   filterDOMElements(doc) {
@@ -146,9 +165,19 @@ class BingSearchManager extends ContentMatchesManager {
     this.image2 =
       "url(https://www.shareicon.net/data/48x48/2016/08/01/639857_internet_512x512.png)";
   }
+  // addMashUpButton() {
+  //   var divContainerForButton = document.getElementById("b_header");
+  //   console.log(divContainerForButton);
+  //   divContainerForButton.insertAdjacentElement(
+  //     "beforeend",
+  //     this.mashUpButton()
+  //   );
+  // }
   async launchSearch() {
     const googleResult = await this.launch("google");
     const ddgResult = await this.launch("duckduckgo");
+    var mashUp = new MashUpResults();
+    mashUp.addMashUpButton("b_header");
     this.renderSearchResult(googleResult, ddgResult); // primero google y segundo ddg
   }
   settingDivForContainer(div) {
@@ -162,33 +191,73 @@ class BingSearchManager extends ContentMatchesManager {
     return document.getElementsByClassName("b_algo");
   }
 }
+//----------------------------------------//
+
+class MashUpResults {
+  button() {
+    var button = document.createElement("button");
+    button.innerHTML = "MashUp Result";
+    //button.addEventListener("click", this.popupResults);
+    return button;
+  }
+
+  mashUpButton() {
+    var divButton = document.createElement("div");
+    divButton.style.display = "flex";
+    divButton.style.alignItems = "flex-end";
+    divButton.style.justifyContent = "flex-end";
+    //creando span para popup//
+    //
+    divButton.appendChild(this.button());
+    return divButton;
+  }
+  addMashUpButton(id) {
+    var divContainerForButton = document.getElementById(id);
+    var button = this.mashUpButton();
+    divContainerForButton.insertAdjacentElement("beforeend", button);
+    button.addEventListener("click", this.popupResults());
+  }
+
+  popupResults() {
+    console.log("pop");
+    //var span = document.createElement("span");
+    //span.innerHTML = "Mash Up de Resultados";
+    //id.appendChild(span);
+  }
+}
+//width: 160px;
+//background-color: #555;
+//color: #fff;
+//text-align: center;
+//border-radius: 6px;
+//padding: 8px 0;
+//position: absolute;
+//z-index: 1;
+//bottom: 125%;
+//left: 50%;
+//margin-left: -80px;
+//----------------------------------------//
+
 function getHostName() {
   return window.location.hostname
     .split(".")
     .filter((words) => words.length > 3)
     .toString();
 }
-
-var google = new GoogleSearchManager();
-var ddg = new DdgSearchManager();
-var bing = new BingSearchManager();
-
+//initialize search engine object
 var currentSearchEngine = (function () {
   switch (getHostName()) {
     case "google":
-      return google;
+      return (google = new GoogleSearchManager());
       break;
     case "duckduckgo":
-      return ddg;
+      return (ddg = new DdgSearchManager());
       break;
     case "bing":
-      return bing;
+      return (bing = new BingSearchManager());
       break;
   }
 })();
 
+//starting the search for matches
 currentSearchEngine.launchSearch();
-
-//"www.google.com"
-//"duckduckgo.com"
-//"www.bing.com"
