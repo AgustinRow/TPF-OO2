@@ -11,10 +11,6 @@
       "js": ["popup.js"]
     }
   ],
-  "browser_action": {
-    "default_icon": "",
-    "default_title": "Search-Matches"
-  },
 
   "permissions": ["<all_urls>"]
 }

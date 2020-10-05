@@ -105,11 +105,6 @@ class GoogleSearchManager extends ContentMatchesManager {
     this.image2 =
       "url(https://www.shareicon.net/data/48x48/2016/07/09/118235_bing_512x512.png)";
   }
-  // addMashUpButton() {
-  //   var divContainerForButton = document.getElementById("hdtbSum");
-  //   var button = this.mashUpButton();
-  //   divContainerForButton.insertAdjacentElement("beforeend", button);
-  // }
 
   async launchSearch() {
     const ddgResult = await this.launch("duckduckgo");
@@ -135,13 +130,7 @@ class DdgSearchManager extends ContentMatchesManager {
     this.image2 =
       "url(https://www.shareicon.net/data/48x48/2016/07/09/118235_bing_512x512.png)";
   }
-  // addMashUpButton() {
-  //   var divContainerForButton = document.getElementById("header");
-  //   divContainerForButton.insertAdjacentElement(
-  //     "beforeend",
-  //     this.mashUpButton()
-  //   );
-  // }
+
   async launchSearch() {
     const googleResult = await this.launch("google");
     const bingResult = await this.launch("bing");
@@ -165,14 +154,7 @@ class BingSearchManager extends ContentMatchesManager {
     this.image2 =
       "url(https://www.shareicon.net/data/48x48/2016/08/01/639857_internet_512x512.png)";
   }
-  // addMashUpButton() {
-  //   var divContainerForButton = document.getElementById("b_header");
-  //   console.log(divContainerForButton);
-  //   divContainerForButton.insertAdjacentElement(
-  //     "beforeend",
-  //     this.mashUpButton()
-  //   );
-  // }
+
   async launchSearch() {
     const googleResult = await this.launch("google");
     const ddgResult = await this.launch("duckduckgo");
