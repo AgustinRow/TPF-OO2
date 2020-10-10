@@ -10,11 +10,8 @@ class BackgroundResult {
         //me quedo en result con un array de urls que se buscaron en la request
         var parser = new DOMParser();
         var doc = parser.parseFromString(oReq.response, "text/html");
-
         resolve(this.parse(doc));
       };
-
-      console.log(url + searchQuery);
       oReq.open("GET", url + searchQuery, true);
       oReq.send();
     });
@@ -25,7 +22,11 @@ class BackgroundResult {
       this.filterDOMElements(result)
     );
   }
-
+  /**
+   *
+   * @param {*} callback
+   * @returns  {Number}
+   */
   getCurrentTab(callback) {
     return browser.tabs.query({
       active: true,
@@ -97,7 +98,5 @@ browser.runtime.onMessage.addListener((request, sender) => {
   );
 
   let host = startBack(request.host);
-  console.log(host);
-  //return Promise.resolve(host.launchSearches(request.searchQuery));
   return host.launchSearch(request.searchQuery);
 });

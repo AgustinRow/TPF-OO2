@@ -22,49 +22,54 @@ class ContentMatchesManager {
         return response;
       });
   }
-  stylingDivForIconContainer(div) {
+  stylingDivForContainer(div) {
     div.style.position = "absolute";
-    div.style.top = ";0";
+    div.style.top = "0";
     div.style.right = "0";
 
     return div;
   }
-
-  stylingDivForPosition(position) {
-    var div = document.createElement("div");
-    if (position == 0) {
-      div.style.backgroundImage = this.notFound;
-      div.style.width = "16px";
-      div.style.height = "16px";
-    } else {
-      div.textContent = position + 1;
-    }
-    div.style.fontSize = "18px";
-    console.log(div);
-    return div;
-  }
-
   //TODO: refactorizar
-  createContainerWithPositionFromMatch(position1, position2) {
-    var divIconContainer = document.createElement("div");
-    divIconContainer = this.stylingDivForIconContainer(divIconContainer);
-    divIconContainer.style.display = "flex";
+  createContainer(position1, position2) {
+    //
+    var divImageContainer = document.createElement("div");
+    divImageContainer = this.stylingDivForContainer(divImageContainer);
+    divImageContainer.style.display = "flex";
     //------------------
     var divResult = document.createElement("div");
     divResult.style.backgroundColor = "white";
     divResult.style.display = "flex";
     //------------------
-    divResult.appendChild(this.stylingDivForPosition(position1 + 1));
-    divResult.appendChild(this.createIconContainer(this.icon1));
+    var divNumber = document.createElement("div");
+    if (position1 + 1 == 0) {
+      divNumber.style.backgroundImage = this.notFound;
+      divNumber.style.width = "16px";
+      divNumber.style.height = "16px";
+    } else {
+      divNumber.textContent = position1 + 1;
+    }
+    divNumber.style.fontSize = "18px";
+    divResult.appendChild(divNumber);
+    divResult.appendChild(this.createImageContainer(this.image1));
     //------------------
-    divResult.appendChild(this.stylingDivForPosition(position2 + 1));
-    divResult.appendChild(this.createIconContainer(this.icon2));
-    //------------------
-    divIconContainer.appendChild(divResult);
-    return divIconContainer;
+    var divNumber2 = document.createElement("div");
+    divResult.appendChild(divNumber2);
+
+    if (position2 + 1 == 0) {
+      divNumber2.style.backgroundImage = this.notFound;
+      divNumber2.style.width = "16px";
+      divNumber2.style.height = "16px";
+    } else {
+      divNumber2.textContent = position2 + 1;
+    }
+    divNumber2.style.fontSize = "18px";
+
+    divResult.appendChild(this.createImageContainer(this.image2));
+    divImageContainer.appendChild(divResult);
+    return divImageContainer;
   }
   //TODO: refact
-  createIconContainer(image) {
+  createImageContainer(image) {
     var div = document.createElement("div");
     div.style.padding = "2px 9px 2px 9px";
     div.style.width = "48px";
@@ -73,6 +78,7 @@ class ContentMatchesManager {
     div.style.margin = "0";
     div.style.color = "white";
     div.style.backgroundRepeat = "no-repeat";
+    //TODO: cambiar la url con concatenar "url(image)"
     div.style.backgroundImage = image;
     return div;
   }
@@ -101,7 +107,7 @@ class ContentMatchesManager {
       let url = eachDomElement.href;
       const position1 = this.findPositionFromMatch(searchEngine1, url);
       const position2 = this.findPositionFromMatch(searchEngine2, url);
-      var div = this.createContainerWithPositionFromMatch(position1, position2);
+      var div = this.createContainer(position1, position2);
       eachDomElement.parentElement.style.width = "100%";
       eachDomElement.insertAdjacentHTML("afterend", div.outerHTML);
     }
@@ -113,13 +119,12 @@ class ContentMatchesManager {
     );
   }
 }
-//------------------------------------------------------------//
 
 class GoogleSearchManager extends ContentMatchesManager {
   constructor() {
     super();
-    this.icon1 = this.ddgIcon;
-    this.icon2 = this.bingIcon;
+    this.image1 = this.ddgIcon;
+    this.image2 = this.bingIcon;
   }
 
   async launchSearch() {
@@ -138,12 +143,11 @@ class GoogleSearchManager extends ContentMatchesManager {
   }
 }
 
-//--------------------------------------------------//
 class DdgSearchManager extends ContentMatchesManager {
   constructor() {
     super();
-    this.icon1 = this.googleIcon;
-    this.icon2 = this.bingIcon;
+    this.image1 = this.googleIcon;
+    this.image2 = this.bing;
   }
 
   async launchSearch() {
@@ -161,13 +165,11 @@ class DdgSearchManager extends ContentMatchesManager {
   }
 }
 
-//----------------------------------------------------------//
-
 class BingSearchManager extends ContentMatchesManager {
   constructor() {
     super();
-    this.icon1 = this.googleIcon;
-    this.icon2 = this.ddgIcon;
+    this.image1 = this.googleIcon;
+    this.image2 = this.ddgIcon;
   }
 
   async launchSearch() {
@@ -177,7 +179,7 @@ class BingSearchManager extends ContentMatchesManager {
     mashUp.addMashUpButton();
     this.renderSearchResult(googleResult, ddgResult); // primero google y segundo ddg
   }
-  stylingDivForIconContainer(div) {
+  stylingDivForContainer(div) {
     div.style.justifyContent = "flex-end";
     return div;
   }
@@ -191,8 +193,8 @@ class BingSearchManager extends ContentMatchesManager {
 //----------------------------------------//
 
 class MashUpResults {
-  constructor(DOMlocation) {
-    this.id = DOMlocation;
+  constructor(location) {
+    this.id = location;
   }
   button() {
     var button = document.createElement("button");
@@ -201,7 +203,7 @@ class MashUpResults {
   }
 
   mashUpContainer() {
-    //divButton es donde va a contener el boton
+    //divButton es donde va a almacenar el boton
     var divButton = document.createElement("div");
     divButton.style.display = "flex";
     divButton.style.alignItems = "flex-end";
@@ -268,7 +270,7 @@ function getHostName() {
     .filter((words) => words.length > 3)
     .toString();
 }
-//initialize search engine manager object
+//initialize search engine object
 var currentSearchEngine = (function () {
   switch (getHostName()) {
     case "google":

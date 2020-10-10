@@ -125,6 +125,8 @@ class GoogleSearchManager extends ContentMatchesManager {
   async launchSearch() {
     const ddgResult = await this.launchBackground("duckduckgo");
     const bingResult = await this.launchBackground("bing");
+    //Chequear si cuando se hace new se puede ejecutar un metodo automaticamente
+    //para que instancie el boton solo haciendo new
     var mashUp = new MashUpResults("hdtbSum");
     mashUp.addMashUpButton();
     this.renderSearchResult(ddgResult, bingResult);
@@ -149,6 +151,8 @@ class DdgSearchManager extends ContentMatchesManager {
   async launchSearch() {
     const googleResult = await this.launchBackground("google");
     const bingResult = await this.launchBackground("bing");
+    //Chequear si cuando se hace new se puede ejecutar un metodo automaticamente
+    //para que instancie el boton solo haciendo new
     var mashUp = new MashUpResults("header_wrapper");
     mashUp.addMashUpButton();
     this.renderSearchResult(googleResult, bingResult);
@@ -173,6 +177,8 @@ class BingSearchManager extends ContentMatchesManager {
   async launchSearch() {
     const googleResult = await this.launchBackground("google");
     const ddgResult = await this.launchBackground("duckduckgo");
+    //Chequear si cuando se hace new se puede ejecutar un metodo automaticamente
+    //para que instancie el boton solo haciendo new
     var mashUp = new MashUpResults("b_header");
     mashUp.addMashUpButton();
     this.renderSearchResult(googleResult, ddgResult); // primero google y segundo ddg
