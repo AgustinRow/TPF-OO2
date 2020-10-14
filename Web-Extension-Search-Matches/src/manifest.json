@@ -12,11 +12,11 @@
         "*://*.duckduckgo.com/?q=*",
         "*://*.bing.com/search?q=*"
       ],
-      "js": ["content.js", "node_modules/lodash/lodash.js"]
+      "js": ["content_script/content.js", "node_modules/lodash/lodash.js"]
     }
   ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["background_script/background.js"]
   },
 
   "permissions": ["<all_urls>"]

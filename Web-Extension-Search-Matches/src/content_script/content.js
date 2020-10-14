@@ -15,6 +15,8 @@ class ContentMatchesManager {
   async launch(engine1, engine2, icon1, icon2) {
     const searchResult1 = await this.launchBackground(engine1);
     const searchResult2 = await this.launchBackground(engine2);
+    console.log(searchResult1);
+    console.log(searchResult2);
     this.renderSearchResult(
       this.filterEmptyOrUndefinedElementsFromArray(searchResult1),
       this.filterEmptyOrUndefinedElementsFromArray(searchResult2),
@@ -44,13 +46,21 @@ class ContentMatchesManager {
     const DOMelements = this.filterEmptyOrUndefinedElementsFromArray(
       this.parseDOM()
     );
+    console.log(DOMelements);
     for (const eachDomElement of DOMelements) {
       let url = eachDomElement.href;
-      const position1 = this.findPositionFromMatch(searchEngine1, url);
-      const position2 = this.findPositionFromMatch(searchEngine2, url);
-      var div = this.renderMatches(position1 + 1, position2 + 1, icon1, icon2);
-      eachDomElement.parentElement.style.width = "100%";
-      eachDomElement.insertAdjacentHTML("afterend", div.outerHTML);
+      if (url) {
+        const position1 = this.findPositionFromMatch(searchEngine1, url);
+        const position2 = this.findPositionFromMatch(searchEngine2, url);
+        var div = this.renderMatches(
+          position1 + 1,
+          position2 + 1,
+          icon1,
+          icon2
+        );
+        eachDomElement.parentElement.style.width = "100%";
+        eachDomElement.insertAdjacentHTML("afterend", div.outerHTML);
+      }
     }
   }
 
@@ -144,20 +154,26 @@ class GoogleSearchManager extends ContentMatchesManager {
   }
 
   async launchSearch() {
-    const results = await this.launch(
-      "duckduckgo",
-      "bing",
-      this.ddgIcon,
-      this.bingIcon
-    );
-    const myResults = this.parseDOM();
-    var mashUp = new RenderMashUpResults(
-      "hdtbSum",
-      myResults,
-      results[0],
-      results[1]
-    );
-    mashUp.render();
+    try {
+      const results = await this.launch(
+        "duckduckgo",
+        "bing",
+        this.ddgIcon,
+        this.bingIcon
+      );
+
+      const myResults = this.parseDOM();
+      var mashUp = new RenderMashUpResults(
+        "hdtbSum",
+        myResults,
+        results[0],
+        results[1]
+      );
+      console.log("-------------");
+      mashUp.render();
+    } catch (e) {
+      console.log("error", e);
+    }
   }
 
   filterDOMElements(doc) {
