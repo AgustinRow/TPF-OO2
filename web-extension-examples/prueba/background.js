@@ -1,37 +1,36 @@
 class BackgroundResult {
-  getMyUrl() {
-    return this.url;
-  }
   launchSearch(searchQuery) {
     return new Promise((resolve, reject) => {
       let oReq = new XMLHttpRequest();
-      let url = this.getMyUrl();
+      //let url = this.getMyUrl();
       oReq.onload = () => {
-        //me quedo en result con un array de urls que se buscaron en la request
         var parser = new DOMParser();
         var doc = parser.parseFromString(oReq.response, "text/html");
-        resolve(this.parse(doc));
+        // remove links that are ads
+
+        var results = this.filterAdds(this.parse(doc));
+        resolve(results);
       };
-      oReq.open("GET", url + searchQuery, true);
+      oReq.open("GET", this.url + searchQuery, true);
       oReq.send();
     });
   }
 
+  //TODO: filtrar "" y undefined
   parse(doc) {
     return Array.from(this.getDOMElementsFromSearch(doc)).map((result) =>
       this.filterDOMElements(result)
     );
   }
-  /**
-   *
-   * @param {*} callback
-   * @returns  {Number}
-   */
+
   getCurrentTab(callback) {
     return browser.tabs.query({
       active: true,
       currentWindow: true,
     });
+  }
+  filterAdds(urls) {
+    return urls;
   }
 }
 
@@ -74,9 +73,14 @@ class DDGResult extends BackgroundResult {
   getDOMElementsFromSearch(doc) {
     return doc.getElementsByClassName("result");
   }
+  filterAdds(urls) {
+    return urls.filter(
+      (result) => !result.startsWith("https://duckduckgo.com/y.js")
+    );
+  }
 }
 
-function startBack(hostName) {
+function startBackground(hostName) {
   switch (hostName) {
     case "google":
       return new GoogleResult();
@@ -97,6 +101,6 @@ browser.runtime.onMessage.addListener((request, sender) => {
     request.host
   );
 
-  let host = startBack(request.host);
+  let host = startBackground(request.host);
   return host.launchSearch(request.searchQuery);
 });

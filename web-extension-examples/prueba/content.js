@@ -12,6 +12,21 @@ class ContentMatchesManager {
       "url(https://www.shareicon.net/data/16x16/2016/04/14/492935_no_34x34.png)";
   }
 
+  async launch(engine1, engine2) {
+    const searchResult1 = await this.launchBackground(engine1);
+    const searchResult2 = await this.launchBackground(engine2);
+    this.renderSearchResult(
+      this.filterEmptyOrUndefinedElementsFromArray(searchResult1),
+      this.filterEmptyOrUndefinedElementsFromArray(searchResult2)
+    );
+
+    return [searchResult1, searchResult2];
+  }
+
+  filterEmptyOrUndefinedElementsFromArray(array) {
+    return array.filter((e) => e !== undefined && e !== "");
+  }
+
   launchBackground(hostName) {
     return browser.runtime
       .sendMessage({
@@ -22,11 +37,65 @@ class ContentMatchesManager {
         return response;
       });
   }
+  //TODO: refact... agregar icon 1 y icon 2 como argumento a esta funcion. Asi elimino las variables de cada clase
+  renderSearchResult(searchEngine1, searchEngine2) {
+    const DOMelements = this.filterEmptyOrUndefinedElementsFromArray(
+      this.parseDOM()
+    );
+    console.log(DOMelements);
+    console.log(searchEngine2);
+    console.log(searchEngine1);
+    for (const eachDomElement of DOMelements) {
+      let url = eachDomElement.href;
+      const position1 = this.findPositionFromMatch(searchEngine1, url);
+      const position2 = this.findPositionFromMatch(searchEngine2, url);
+      var div = this.renderMatches(position1 + 1, position2 + 1);
+      eachDomElement.parentElement.style.width = "100%";
+      eachDomElement.insertAdjacentHTML("afterend", div.outerHTML);
+    }
+  }
+
+  findPositionFromMatch(searchEngine, url) {
+    return searchEngine.findIndex((element) => {
+      return (
+        this.removeHTTPFromBegin(element) === this.removeHTTPFromBegin(url)
+      );
+    });
+  }
+
+  removeHTTPFromBegin(url) {
+    let result = url.split("//")[1];
+    if (result.startsWith("www.")) {
+      return result.split("www.")[1];
+    } else {
+      return result;
+    }
+  }
+  //TODO: aregar icon1 y icon2 como argumentos de esta funcion
+  renderMatches(position1, position2) {
+    var divIconContainer = document.createElement("div");
+    divIconContainer = this.stylingDivForIconContainer(divIconContainer);
+    divIconContainer.style.display = "flex";
+    //------------------//
+    var divResult = document.createElement("div");
+    divResult.style.backgroundColor = "white";
+    divResult.style.display = "flex";
+    divResult.style.zIndex = "1";
+    //------------------//
+    divResult.appendChild(this.stylingDivForPosition(position1));
+    divResult.appendChild(this.createIconContainer(this.icon1));
+    //------------------//
+    divResult.appendChild(this.stylingDivForPosition(position2));
+    divResult.appendChild(this.createIconContainer(this.icon2));
+    //------------------//
+    divIconContainer.appendChild(divResult);
+    return divIconContainer;
+  }
+
   stylingDivForIconContainer(div) {
     div.style.position = "absolute";
     div.style.top = ";0";
     div.style.right = "0";
-
     return div;
   }
 
@@ -37,33 +106,12 @@ class ContentMatchesManager {
       div.style.width = "16px";
       div.style.height = "16px";
     } else {
-      div.textContent = position + 1;
+      div.textContent = position;
     }
     div.style.fontSize = "18px";
-    console.log(div);
     return div;
   }
 
-  //TODO: refactorizar
-  createContainerWithPositionFromMatch(position1, position2) {
-    var divIconContainer = document.createElement("div");
-    divIconContainer = this.stylingDivForIconContainer(divIconContainer);
-    divIconContainer.style.display = "flex";
-    //------------------
-    var divResult = document.createElement("div");
-    divResult.style.backgroundColor = "white";
-    divResult.style.display = "flex";
-    //------------------
-    divResult.appendChild(this.stylingDivForPosition(position1 + 1));
-    divResult.appendChild(this.createIconContainer(this.icon1));
-    //------------------
-    divResult.appendChild(this.stylingDivForPosition(position2 + 1));
-    divResult.appendChild(this.createIconContainer(this.icon2));
-    //------------------
-    divIconContainer.appendChild(divResult);
-    return divIconContainer;
-  }
-  //TODO: refact
   createIconContainer(image) {
     var div = document.createElement("div");
     div.style.padding = "2px 9px 2px 9px";
@@ -83,30 +131,6 @@ class ContentMatchesManager {
     return searchQuery;
   }
 
-  removeHTTPFromBegin(url) {
-    return url.split("//")[1];
-  }
-
-  findPositionFromMatch(searchEngine, url) {
-    return searchEngine.findIndex((element) => {
-      return (
-        this.removeHTTPFromBegin(element) === this.removeHTTPFromBegin(url)
-      );
-    });
-  }
-
-  renderSearchResult(searchEngine1, searchEngine2) {
-    const DOMelements = this.parseDOM(document);
-    for (const eachDomElement of DOMelements) {
-      let url = eachDomElement.href;
-      const position1 = this.findPositionFromMatch(searchEngine1, url);
-      const position2 = this.findPositionFromMatch(searchEngine2, url);
-      var div = this.createContainerWithPositionFromMatch(position1, position2);
-      eachDomElement.parentElement.style.width = "100%";
-      eachDomElement.insertAdjacentHTML("afterend", div.outerHTML);
-    }
-  }
-
   parseDOM() {
     return Array.from(this.getDOMElementsFromSearch()).map((result) =>
       this.filterDOMElements(result)
@@ -123,11 +147,17 @@ class GoogleSearchManager extends ContentMatchesManager {
   }
 
   async launchSearch() {
-    const ddgResult = await this.launchBackground("duckduckgo");
-    const bingResult = await this.launchBackground("bing");
-    var mashUp = new MashUpResults("hdtbSum");
-    mashUp.addMashUpButton();
-    this.renderSearchResult(ddgResult, bingResult);
+    const results = await this.launch("duckduckgo", "bing");
+    console.log(results[0]);
+    const myResults = this.parseDOM();
+    console.log(myResults);
+    var mashUp = new RenderMashUpResults(
+      "hdtbSum",
+      myResults,
+      results[0],
+      results[1]
+    );
+    mashUp.render();
   }
 
   filterDOMElements(doc) {
@@ -147,12 +177,22 @@ class DdgSearchManager extends ContentMatchesManager {
   }
 
   async launchSearch() {
-    const googleResult = await this.launchBackground("google");
-    const bingResult = await this.launchBackground("bing");
-    var mashUp = new MashUpResults("header_wrapper");
-    mashUp.addMashUpButton();
-    this.renderSearchResult(googleResult, bingResult);
+    try {
+      const results = await this.launch("google", "bing");
+      const myResults = this.parseDOM();
+
+      var mashUp = new RenderMashUpResults(
+        "header_wrapper",
+        results[0],
+        results[1],
+        myResults
+      );
+      mashUp.render();
+    } catch (e) {
+      console.log("error", e);
+    }
   }
+
   filterDOMElements(doc) {
     return doc.getElementsByClassName("result__a")[0];
   }
@@ -171,12 +211,17 @@ class BingSearchManager extends ContentMatchesManager {
   }
 
   async launchSearch() {
-    const googleResult = await this.launchBackground("google");
-    const ddgResult = await this.launchBackground("duckduckgo");
-    var mashUp = new MashUpResults("b_header");
-    mashUp.addMashUpButton();
-    this.renderSearchResult(googleResult, ddgResult); // primero google y segundo ddg
+    const results = await this.launch("google", "duckduckgo");
+    const myResults = this.parseDOM();
+    var mashUp = new RenderMashUpResults(
+      "b_header",
+      results[0],
+      myResults,
+      results[1]
+    );
+    mashUp.render();
   }
+
   stylingDivForIconContainer(div) {
     div.style.justifyContent = "flex-end";
     return div;
@@ -190,36 +235,41 @@ class BingSearchManager extends ContentMatchesManager {
 }
 //----------------------------------------//
 
-class MashUpResults {
-  constructor(DOMlocation) {
+class RenderMashUpResults {
+  constructor(DOMlocation, googleResults, ddgResults, bingResults) {
     this.id = DOMlocation;
+    this.google = googleResults;
+    this.ddg = ddgResults;
+    this.bing = bingResults;
   }
+  render() {
+    console.log("mash");
+    var divTargetForButton = document.getElementById(this.id);
+    var mashUpContainer = this.createMashUpContainer();
+    const popUp = this.createPopUpContent();
+    const button = this.button();
+    mashUpContainer.appendChild(button);
+    mashUpContainer.appendChild(popUp);
+    divTargetForButton.insertAdjacentElement("beforeend", mashUpContainer);
+    button.addEventListener("click", this.openPopupResults);
+  }
+
   button() {
     var button = document.createElement("button");
     button.innerHTML = "MashUp Result";
     return button;
   }
 
-  mashUpContainer() {
-    //divButton es donde va a contener el boton
-    var divButton = document.createElement("div");
-    divButton.style.display = "flex";
-    divButton.style.alignItems = "flex-end";
-    divButton.style.justifyContent = "flex-end";
-    divButton.style.flexDirection = "column";
-    divButton.style.position = "absolute";
-    divButton.style.top = "70px";
-    divButton.style.right = "20px";
-    var divPopUp = this.createPopUpContent();
-    divButton.appendChild(this.button());
-    divButton.appendChild(divPopUp);
-    return divButton;
-  }
-  addMashUpButton() {
-    var divContainerForButton = document.getElementById(this.id);
-    var button = this.mashUpContainer();
-    divContainerForButton.insertAdjacentElement("beforeend", button);
-    button.addEventListener("click", this.openPopupResults);
+  createMashUpContainer() {
+    var div = document.createElement("div");
+    div.style.display = "flex";
+    div.style.alignItems = "flex-end";
+    div.style.justifyContent = "flex-end";
+    div.style.flexDirection = "column";
+    div.style.position = "absolute";
+    div.style.top = "70px";
+    div.style.right = "20px";
+    return div;
   }
 
   openPopupResults(e) {
@@ -236,6 +286,7 @@ class MashUpResults {
     divContainerForPopup.id = "popup";
     divContainerForPopup.style.display = "flex";
     divContainerForPopup.style.backgroundColor = "white";
+    divContainerForPopup.style.zIndex = "1";
     divContainerForPopup.style.borderColor = "black";
     divContainerForPopup.style.borderStyle = "outset";
     divContainerForPopup.style.borderRadius = "15px";
@@ -246,19 +297,86 @@ class MashUpResults {
     title.innerHTML = "Mash Up Results";
     popupText.appendChild(title);
     popupText.style.padding = "10px 20px";
-    popupText.appendChild(this.createListResult());
+    var results = this.processArrayOfUrls();
+    popupText.appendChild(this.createListResult(results));
     divContainerForPopup.appendChild(popupText);
     return divContainerForPopup;
   }
 
-  createListResult() {
+  createListResult(results) {
     var ul = document.createElement("ul");
-    for (let i = 1; i < 18; i++) {
+    for (const each of results) {
       var li = document.createElement("li");
-      li.innerText = "Primer elemento de GOoogle";
+      li.insertAdjacentHTML("beforeend", each);
       ul.appendChild(li);
     }
     return ul;
+  }
+
+  processArrayOfUrls() {
+    var contador = -1;
+    function process(elem, str) {
+      return elem ? insertUrlIntotLink(elem, str) : undefined;
+    }
+
+    function insertUrlIntotLink(myHref, text) {
+      return "<a href=" + myHref + ">" + text + "</a>";
+    }
+
+    function numberToWord(number) {
+      const position = [
+        "Primer",
+        "Segundo",
+        "Tercer",
+        "Cuarto",
+        "Quinto",
+        "Sexto",
+        "Septimo",
+        "Octavo",
+        "Noveno",
+        "Decimo",
+        "Undécimo",
+        "Duodécimo",
+        "Decimotercero",
+        "Decimocuarto",
+        "Decimoquinto",
+        "Decimosexto",
+        "Decimoséptimo",
+        "Decimoctavo",
+        "Decimonoveno",
+        "vigésimo",
+        "Vigésimo primero",
+        "Vigésimo segundo",
+        "Vigésimo tercero",
+        "Vigésimo cuarto",
+        "Vigésimo quinto",
+        "Vigésimo sexto",
+        "Vigésimo séptimo",
+        "Vigésimo octavo",
+        "Vigésimo noveno",
+        "Trigésimo",
+        "Trigésimo primero",
+        "Trigésimo segundo",
+        "Trigésimo terceros",
+      ];
+      return position[number];
+    }
+    var result = _.zipWith(this.google, this.ddg, this.bing, function (
+      a,
+      b,
+      c
+    ) {
+      contador++;
+      return [
+        process(a, numberToWord(contador) + " resultado de Google"),
+        process(b, numberToWord(contador) + " resultado de DuckDuckGo"),
+        process(c, numberToWord(contador) + " resultado de Bing"),
+      ];
+    })
+      .flat()
+      .filter((elem) => elem != undefined);
+
+    return result;
   }
 }
 
@@ -272,16 +390,15 @@ function getHostName() {
 var currentSearchEngine = (function () {
   switch (getHostName()) {
     case "google":
-      return (google = new GoogleSearchManager());
+      return new GoogleSearchManager();
       break;
     case "duckduckgo":
-      return (ddg = new DdgSearchManager());
+      return new DdgSearchManager();
       break;
     case "bing":
-      return (bing = new BingSearchManager());
+      return new BingSearchManager();
       break;
   }
 })();
-
 //starting the search for matches
 currentSearchEngine.launchSearch();
