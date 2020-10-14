@@ -12,12 +12,14 @@ class ContentMatchesManager {
       "url(https://www.shareicon.net/data/16x16/2016/04/14/492935_no_34x34.png)";
   }
 
-  async launch(engine1, engine2) {
+  async launch(engine1, engine2, icon1, icon2) {
     const searchResult1 = await this.launchBackground(engine1);
     const searchResult2 = await this.launchBackground(engine2);
     this.renderSearchResult(
       this.filterEmptyOrUndefinedElementsFromArray(searchResult1),
-      this.filterEmptyOrUndefinedElementsFromArray(searchResult2)
+      this.filterEmptyOrUndefinedElementsFromArray(searchResult2),
+      icon1,
+      icon2
     );
 
     return [searchResult1, searchResult2];
@@ -37,19 +39,16 @@ class ContentMatchesManager {
         return response;
       });
   }
-  //TODO: refact... agregar icon 1 y icon 2 como argumento a esta funcion. Asi elimino las variables de cada clase
-  renderSearchResult(searchEngine1, searchEngine2) {
+
+  renderSearchResult(searchEngine1, searchEngine2, icon1, icon2) {
     const DOMelements = this.filterEmptyOrUndefinedElementsFromArray(
       this.parseDOM()
     );
-    console.log(DOMelements);
-    console.log(searchEngine2);
-    console.log(searchEngine1);
     for (const eachDomElement of DOMelements) {
       let url = eachDomElement.href;
       const position1 = this.findPositionFromMatch(searchEngine1, url);
       const position2 = this.findPositionFromMatch(searchEngine2, url);
-      var div = this.renderMatches(position1 + 1, position2 + 1);
+      var div = this.renderMatches(position1 + 1, position2 + 1, icon1, icon2);
       eachDomElement.parentElement.style.width = "100%";
       eachDomElement.insertAdjacentHTML("afterend", div.outerHTML);
     }
@@ -71,8 +70,8 @@ class ContentMatchesManager {
       return result;
     }
   }
-  //TODO: aregar icon1 y icon2 como argumentos de esta funcion
-  renderMatches(position1, position2) {
+
+  renderMatches(position1, position2, icon1, icon2) {
     var divIconContainer = document.createElement("div");
     divIconContainer = this.stylingDivForIconContainer(divIconContainer);
     divIconContainer.style.display = "flex";
@@ -83,10 +82,10 @@ class ContentMatchesManager {
     divResult.style.zIndex = "1";
     //------------------//
     divResult.appendChild(this.stylingDivForPosition(position1));
-    divResult.appendChild(this.createIconContainer(this.icon1));
+    divResult.appendChild(this.createIconContainer(icon1));
     //------------------//
     divResult.appendChild(this.stylingDivForPosition(position2));
-    divResult.appendChild(this.createIconContainer(this.icon2));
+    divResult.appendChild(this.createIconContainer(icon2));
     //------------------//
     divIconContainer.appendChild(divResult);
     return divIconContainer;
@@ -142,15 +141,16 @@ class ContentMatchesManager {
 class GoogleSearchManager extends ContentMatchesManager {
   constructor() {
     super();
-    this.icon1 = this.ddgIcon;
-    this.icon2 = this.bingIcon;
   }
 
   async launchSearch() {
-    const results = await this.launch("duckduckgo", "bing");
-    console.log(results[0]);
+    const results = await this.launch(
+      "duckduckgo",
+      "bing",
+      this.ddgIcon,
+      this.bingIcon
+    );
     const myResults = this.parseDOM();
-    console.log(myResults);
     var mashUp = new RenderMashUpResults(
       "hdtbSum",
       myResults,
@@ -172,13 +172,16 @@ class GoogleSearchManager extends ContentMatchesManager {
 class DdgSearchManager extends ContentMatchesManager {
   constructor() {
     super();
-    this.icon1 = this.googleIcon;
-    this.icon2 = this.bingIcon;
   }
 
   async launchSearch() {
     try {
-      const results = await this.launch("google", "bing");
+      const results = await this.launch(
+        "google",
+        "bing",
+        this.googleIcon,
+        this.bingIcon
+      );
       const myResults = this.parseDOM();
 
       var mashUp = new RenderMashUpResults(
@@ -206,12 +209,15 @@ class DdgSearchManager extends ContentMatchesManager {
 class BingSearchManager extends ContentMatchesManager {
   constructor() {
     super();
-    this.icon1 = this.googleIcon;
-    this.icon2 = this.ddgIcon;
   }
 
   async launchSearch() {
-    const results = await this.launch("google", "duckduckgo");
+    const results = await this.launch(
+      "google",
+      "duckduckgo",
+      this.googleIcon,
+      this.ddgIcon
+    );
     const myResults = this.parseDOM();
     var mashUp = new RenderMashUpResults(
       "b_header",
