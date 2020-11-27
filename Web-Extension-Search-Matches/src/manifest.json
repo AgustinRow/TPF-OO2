@@ -18,6 +18,11 @@
   "background": {
     "scripts": ["background_script/background.js"]
   },
+  "applications": {
+    "gecko": {
+      "id": "searchMatches@oncosmos.com"
+    }
+  },
 
   "permissions": ["<all_urls>"]
 }
